@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>ECE 5160 Lab 1</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">ECE 5160 Home</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/gradient_background.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Lab 1: The Artemis Board</h1>
+                            <span class="meta">
+                                January 26, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/_mdXNS83q7s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        <h2 class="section-heading">Objective</h2>
+                        <p>This first lab focused on setting up and becoming familiar with the Arduino IDE and the Artemis board that are being used for this class.</p>
+                        <h2 class="section-heading">Blink</h2>
+                        <p>The first part of the lab was running the Blink example program on the board. This program repeatedly toggled an LED once every second. This behavior can be seen in the first section (titled Blink) of the video above.</p>
+                        <h2 class="section-heading">Serial</h2>
+                        <p>The second part of the lab was running the Serial example program on the board. As you can see in the second part (Serial) of the video above, this program prints whatever is typed into the Serial input to the output. In the video, I input "a", "b", and "ece5160 says hi!", which one can see printed out at the bottom of the screen. </p>
+                        <h2 class="section-heading">AnalogRead</h2>
+                        <p>The third part of the lab was running the AnalogRead example program on the board, which was one of the Apollo3 examples. This program reads analog voltages from various inputs; specifically, it reads the following ADC values: </p>
+                        <ul>
+                            <li>the ADC reading of a selected ADC pin</li>
+                            <li>the internal die temperature</li>
+                            <li>the internal VCC voltage</li>
+                            <li>the internal VSS voltage</li>
+                        </ul>
+                        <p>For this lab, I only looked at the temperature reading. While this program did fade the built-in LED according to the temperature reading, I found that just using my hand to vary the temperature was not enought to cause a visible fade. Instead, one can see in the serial monitor of section three (AnalogRead) of the above video that the temp(counts) reading changes. Initially, it is in the region of ~33300 with my hand placed on the board. As I remove my hand, the raw temperature reading gradually falls until it reaches ~33150.</p>
+                        <h2 class="section-heading">Microphone Output</h2>
+                        <p>The final part of this lab was to run the microphone output example. This program used the pulse density microphone (PDM) to detect frequencies from the microphone input. The serial monitor then printed out the frequency with the largest magnitude. In the section of the video titled Microphone Output, I hummed two notes at approximately 183 Hz and 274 Hz which was then displayed on the serial monitor. </p>
+                        <p>As a 5000-level student, I also wrote a brief snippet of code that turned on the onboard LED when it detected the musical note A. I referenced the pitch of an A4, which is 440Hz. However, based on experimentation, I discovered that playing an A4 from my tuner app into the Microphone Output example resulted in the serial monitor printing 434Hz instead. Thus, I made sure to account for the entire range from 434Hz to 440Hz. The code that I implemented is below.</p>
+                        <pre><code>
+    if (ui32LoudestFrequency >= 434 && ui32LoudestFrequency <= 440){
+        digitalWrite(LED_BUILTIN, HIGH);
+        }
+    else {
+        digitalWrite(LED_BUILTIN, LOW); 
+    }
+                        </code></pre>
+                        <p>As one can see, if the frequency of the loudest pitch was within the range for an A4, I turned the LED on; otherwise it was off. This can be seen in action in the last section of the video above. By playing the A, the blue builtin LED turns on. As a note, the LED flickers slightly, probably due to the piano A not being a pure tone. </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
