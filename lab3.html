@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>ECE 5160 Lab 1</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">ECE 5160 Home</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/gradient_background.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Lab 3: Time of Flight</h1>
+                            <span class="meta">
+                                February 16, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <h2 class="section-heading">Objective</h2>
+                        <p>In lab 3, I learned how to use I2C to communicate with two Time of Flight (ToF) sensors. I also learned to increase the speed of communication.  </p>
+                        
+                        <h2 class="section-heading">Prelab</h2>
+                        <p>According to the datasheet, the I2C sensor address was 0x52.</p>
+                        <p>Because both of the ToF sensors use the same I2C address by default, I cannot just plug them in to read from both. Thus, to use two ToF sensors, there were two possible methods.  </p>
+                        <p><b>Method 1: Change the address</b></p>
+                        <p>To use this option, I would have to change the address of both of the ToF sensors programmatically. With this, I would be able to receive data from both ToF sensors simultaneously and the delay between readings from the sensors would be reduced. However, this would require reprogramming the I2C addresses every time the Artemis is powered on, creating a longer initial setup time. </p>
+                        <p><b>Method 2: Use the shutdown pin</b></p>
+                        <p>To use this option, I would enable the shutdown on one of the sensors to power it off so that the other could be read. This method would save power, but it would require a delay between readings from the different sensors due to the additional logic. Additionally, we would not be able to request readings from the sensors simultaneously. </p>
+                        <p>I decided to programmatically change the addresses of the ToF sensors rather than use the shutdown pin. </p>
+                        <p>Since we are using two ToF sensors, the different combinations of sensor placements must be considered. At least one ToF sensor will be at the front of the robot, due to the general forward motion of the robot. This is necessary to avoid obstacles while driving forward. The second ToF sensor has some different possibilities for placement. For example, it can placed be on the side of the robot, making it so that the robot can see on one side in addition to in front. However, this means that the other side of the robot will not gain the same "vision," making it vulnerable to obstacles on the blind side. However, this would be useful if the robot needs to follow a wall on the side with the sensor. Another possibility would be to place both sensors on the front of the robot. This would allow the range of vision to be wiider in the front, and the sensor overlap may increase the accuracy of the distance reading. Another option would be to put a sensor on the back or top of the robot, providing information when the robot flips or backs up. However, this would not be optimal in most other situations, as there would not be many situations where the data uses this data.</p>
+                        <p>I decided to place the sensors on the front and side of the robot, so I soldered a long connector and short connector to the boards. </p>
+                        
+                        <h2 class="section-heading">The First ToF Sensor</h2>
+                        <p>The following image shows one ToF sensor attached to the QWIIC breakout board. </p> 
+                        <img src="assets/img/lab3_tofimage.jpg" style="object-fit:contain; width:40%" alt="ToF sensor connected">
+                        <p>Note that I later added a wire connecting the shutdown pin of the sensor to pin 7 on the Artemis.</p>
+                        <p>To determine which wires corresponded with SDA and SCL, I referenced the following diagram from the QWIIC documentation: </p>
+                        <img src="assets/img/lab3_QwiicPinoutGraphic.jpg" style="object-fit:contain; width:75%" alt="QWIIC pinout">
+                        <p>The I2C address found by the Artemis is as follows: </p>
+                        <img src="assets/img/lab3_i2caddress.png" style="object-fit:contain; width:75%" alt="I2C address">
+                        <p>This was the expected 0x52 value right-shifted by 1, so this is reasonable, as the last bit is the read/write bit. </p>
+                        <p>The three modes were as follows: </p>
+                        <code>.setDistanceModeShort(); //1.3m </code> <br>
+                        <code>.setDistanceModeMedium(); //3m </code> <br>
+                        <code>.setDistanceModeLong(); //4m, Default </code>
+                        <p>These functions will optimize the sensor for different ranges by improving the accuracy. The comments for each of the different modes shows the distances that it is most useful for (1.3m, 3m, 4m). In this lab, I used the .setDistanceModeShort mode. </p>
+                        <p>I then ran the Example1_ReadDistance example and conducted a series of tests. The test setup is shown below:  </p>
+                        <img src="assets/img/lab3_testsetup.jpg" style="object-fit:contain; width:40%" alt="test setup">
+                        <p>I moved the sensor by 15cm between 5cm and 135cm (1.35m, just out of the range of the short distance mode range) and collected 100 samples at each point. The results are seen in the plots below: </p>
+                        <img src="assets/img/lab3_measurecompare.png" style="object-fit:contain; width:75%" alt="measurement plot">
+                        <img src="assets/img/lab3_differenceplot.png" style="object-fit:contain; width:75%" alt="difference plot">
+                        <p>These first plot looked at the accuracy of the measurements. As one can see, the average value over the trials closely matched that of the expected values. For the distances within the range of the sensor (less than 1.3m in short distance mode), the difference between the actual and expected values were very close (within 4mm), and were still relatively small (less than 8mm) for the data point outside of the sensor range. </p>
+                        <img src="assets/img/lab3_stddev.png" style="object-fit:contain; width:75%" alt="std dev plot">
+                        <p>This plot demonstrates the reliability of the sensor. Over 100 trials, the standard deviation was extremely small at each distance point. It increased as the distances increased and became exponentially larger once the sensor was out of the 1.3m range, which is to be expected. However, these results prove that this sensor is both accurate and reliable within the range set by the mode. </p>
+
+                        <h2 class="section-heading">Multiple Sensors</h2>
+                        <p>As mentioned before, I decided to programmatically change the addresses of the ToF sensors. To do this, I pulled the shutdown signal low on the first ToF sensor and reassigned the address of the second sensor to be 0x20. This address was arbitrarily chosen. </p>
+                        <script src="https://gist.github.com/umdiddle/fb7687c7c6f6d3418f72171c1b00cc00.js"></script>
+                        <script src="https://gist.github.com/umdiddle/247826230ac4228df1215c0ae4eaa2ec.js"></script>
+                        <p>Simultaneous reading from both sensors is shown below: </p>
+                        <img src="assets/img/lab3_bothreading.png" style="object-fit:contain; width:75%" alt="both sensors reading">
+                        <p>Thus, I was able to determine that I had both set up and read from both sensors correctly.</p>
+
+                        <h2 class="section-heading">Data Speed</h2>
+                        <p>In this portion of the lab looked at the speed of data coming from the ToF sensors. I used the following code snippet to print the time in milliseconds and sensor readings as quickly as they were available.</p>
+                        <p>With this, I found that the speed of the ToF sensor readings was significantly slower than the milliseconds readings. </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Your Website 2022</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
