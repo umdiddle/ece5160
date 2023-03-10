@@ -50,48 +50,64 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <h2 class="section-heading">Objective</h2>
-                        <p>In lab 4, I learned how to get pitch, roll, and yaw from the IMU (Inertial Measurement Unit) sensors and transmitted the data over bluetooth from the Artemis. I also used batteries to power the Artemis so it could collect data while the car was running. </p>
+                        <p>In lab 4, I learned how to get pitch, roll, and yaw from the IMU (Inertial Measurement Unit) sensors and transmitted the data over bluetooth from the Artemis. I also used batteries to power the Artemis so it could collect data while the car was running. This will eventually be used to collect orientation data for the robot later. </p>
                         
                         <h2 class="section-heading">Set Up the IMU</h2>
                         <img src="assets/img/lab4_setup.png" style="object-fit:contain; width:75%">
                         <p>I started off by running the IMU example code to ensure that the sensor worked. The following video demonstrates the sensor behavior as I rotate, flip, and accelerate the board.</p>
-                        <p>As one can see, movements in the x, y, and z directions </p>
-                        <p>In the code, the AD0_VAL is set to //. This is because //.</p>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/IjjQEbhLoDY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        <p>In the beginning, I simply rotate the sensor slowly, causing changes in the gyroscope data. Keeping the orientation the same and moving the sensor back and forth along various planes would cause the accelerometer to oscillate, as seen in the video. Most of the values started at 0, but accelerometer data for Z was larger than 0 due to the force of gravity. </p>
+                        <p>In the code, the AD0_VAL is set to 1 as the default. This value sets the I2C address as binary 1101001, or hexadecimal 0x69. To use a second IMU, one would simply just need to modify the code for the second IMU to change the I2C address to a  different one.</p>
+
+                        <h2 class="section-heading">Accelerometer</h2>
+                        <p>The accelerometer data could be used to calculate pitch and roll. The following equations were used: </p>
+                        <p>Pitch: </p>
+                        <img src="https://latex.codecogs.com/svg.image?\theta&space;=&space;atan2(x_{accel},&space;y_{accel}&space;)" title="https://latex.codecogs.com/svg.image?\theta = atan2(x_{accel}, y_{accel} )" />
+                        <p>Roll: </p>
+                        <img src="https://latex.codecogs.com/svg.image?\phi&space;=&space;atan2(y_{accel},&space;z_{accel}&space;)" title="https://latex.codecogs.com/svg.image?\phi = atan2(y_{accel}, z_{accel} )" />
+                        <p>There is no way to get yaw from accelerometer data, so that was not calculated in this part. </p>
+                        <p>The following image demonstrates the pitch calculated from the first equation as I rotated the IMU from -90, 0, to 90 degrees around the x-axis.  </p>
+                        <img src="assets/img/lab4_pitchaccel.png" style="object-fit:contain; width:100%">
+                        <p>The following image demonstrates the roll calculated from the first equation as I rotated the IMU from -90, 0, to 90 degrees around the y-axis.  </p>
+                        <img src="assets/img/lab4_rollaccel.png" style="object-fit:contain; width:100%">
+                        <p>As one can see from the data that was acquired, the pitch and roll being calculated were fairly accurate for these angles, so no calibration was necessary. </p>
+
+                        <p><b>Accelerometer Noise</b></p>
+                        <p>To determine how noise affected the IMU, I ran the car above the IMU as it collected accelerometer data. I did this for both pitch and roll calculations and ran an FFT using the example code from Arduino's FFT library. </p>
+                        <img src="assets/img/lab4_pitchaccel_fft.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab4_rollaccel_fft.png" style="object-fit:contain; width:100%">
+                        <p>While the sensor was fairly good at filtering out this noise, I decided that the amplitude of the higher frequencies was large enough (amplitude was at least 12.5% of the actual signal noise) that I needed a low pass filter. This was a simple weighted average as seen from the lecture below: </p>
+                        <img src="assets/img/lab4_lpfeq.png" style="object-fit:contain; width:100%">
+                        <p>where the RC was taken from the cutoff frequency equation. In this case, the cutoff frequency was 20 Hz, meaning the alpha used in the filter was approximately 0.136. </p>
+                        <p>Here are the code snippets that were used to calculate the pitch with the low pass filter incorporated. </p>
+                        <script src="https://gist.github.com/umdiddle/d948ba3ab9140c5b70b127c64c703b1b.js"></script>
+
+                        <h2 class="section-heading">Gyroscope</h2>
+                        <p>The gyroscope data could also be used to calculate pitch and roll, as well as yaw. The following equations were used: </p>
+                        <p>Pitch: </p>
+                        <img src="https://latex.codecogs.com/svg.image?\theta_{n}&space;=&space;\theta_{n-1}&space;-&space;x_{gyro}&space;*&space;dt" title="https://latex.codecogs.com/svg.image?\theta_{n} = \theta_{n-1} - x_{gyro} * dt" />
+                        <p>Roll: </p>
+                        <img src="https://latex.codecogs.com/svg.image?\phi_{n}&space;=&space;\phi_{n-1}&space;&plus;&space;z_{gyro}&space;*&space;dt" title="https://latex.codecogs.com/svg.image?\phi_{n} = \phi_{n-1} + z_{gyro} * dt" />
+                        <p>Yaw: </p>
+                        <img src="https://latex.codecogs.com/svg.image?\psi_{n}&space;=&space;\psi_{n-1}&space;-&space;y_{gyro}&space;*&space;dt" title="https://latex.codecogs.com/svg.image?\psi_{n} = \psi_{n-1} - y_{gyro} * dt" />
+                        <p>The following code was responsible to calculate all three of these measurements. </p>
+                        <script src="https://gist.github.com/umdiddle/576f285463a72282e05a4d44dc1fa618.js"></script>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/3Gt7VClLfiM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                         
-                        <h2 class="section-heading">The First ToF Sensor</h2>
-                        <p>The following image shows one ToF sensor attached to the QWIIC breakout board. </p> 
-                        <img src="assets/img/lab3_tofimage.jpg" style="object-fit:contain; width:40%" alt="ToF sensor connected">
-                        <p>Note that I later added a wire connecting the shutdown pin of the sensor to pin 7 on the Artemis.</p>
-                        <p>To determine which wires corresponded with SDA and SCL, I referenced the following diagram from the QWIIC documentation: </p>
-                        <img src="assets/img/lab3_QwiicPinoutGraphic.jpg" style="object-fit:contain; width:75%" alt="QWIIC pinout">
-                        <p>The I2C address found by the Artemis is as follows: </p>
-                        <img src="assets/img/lab3_i2caddress.png" style="object-fit:contain; width:75%" alt="I2C address">
-                        <p>This was the expected 0x52 value right-shifted by 1, so this is reasonable, as the last bit is the read/write bit. </p>
-                        <p>The three modes were as follows: </p>
-                        <code>.setDistanceModeShort(); //1.3m </code> <br>
-                        <code>.setDistanceModeMedium(); //3m </code> <br>
-                        <code>.setDistanceModeLong(); //4m, Default </code>
-                        <p>These functions will optimize the sensor for different ranges by improving the accuracy. The comments for each of the different modes shows the distances that it is most useful for (1.3m, 3m, 4m). In this lab, I used the .setDistanceModeShort mode. </p>
-                        <p>I then ran the Example1_ReadDistance example and conducted a series of tests. The test setup is shown below:  </p>
-                        <img src="assets/img/lab3_testsetup.jpg" style="object-fit:contain; width:40%" alt="test setup">
-                        <p>I moved the sensor by 15cm between 5cm and 135cm (1.35m, just out of the range of the short distance mode range) and collected 100 samples at each point. The results are seen in the plots below: </p>
-                        <img src="assets/img/lab3_measurecompare.png" style="object-fit:contain; width:75%" alt="measurement plot">
-                        <img src="assets/img/lab3_differenceplot.png" style="object-fit:contain; width:75%" alt="difference plot">
-                        <p>These first plot looked at the accuracy of the measurements. As one can see, the average value over the trials closely matched that of the expected values. For the distances within the range of the sensor (less than 1.3m in short distance mode), the difference between the actual and expected values were very close (within 4mm), and were still relatively small (less than 8mm) for the data point outside of the sensor range. </p>
-                        <img src="assets/img/lab3_stddev.png" style="object-fit:contain; width:75%" alt="std dev plot">
-                        <p>This plot demonstrates the reliability of the sensor. Over 100 trials, the standard deviation was extremely small at each distance point. It increased as the distances increased and became exponentially larger once the sensor was out of the 1.3m range, which is to be expected. However, these results prove that this sensor is both accurate and reliable within the range set by the mode. </p>
+                        <p><b>Complementary Filter</b></p>
+                        <p>The gyroscope roll data had a bit of drift associated with it. This was dependent on the dt, as shown below. </p>
+                        <p>Drift from sampling at 100Hz: </p>
+                        <img src="assets/img/lab4_rolldrift_100Hz.png" style="object-fit:contain; width:100%">
+                        <p>Drift from sampling at 200Hz: </p>
+                        <img src="assets/img/lab4_rolldrift_200Hz.png" style="object-fit:contain; width:100%">
+                        <p>As one can see, the drift was nearly halved at the higher sampling frequency. Thus, I chose to use 200Hz as my sampling rate for this. Additionally, because we had pitch and roll data from both the accelerometer and gyroscope data, I used a complementary filter to incorporate data from both. The code for this is seen below: </p>
+                        <script src="https://gist.github.com/umdiddle/5ff60581018a4b1ccb9c1724e92b2937.js"></script>
+                        <p>Note that the alpha that was chosen for this section was 0.9, as I wanted to prioritize accuracy over noise of the sensor. Due to this, there was no drift and the data was still relatively clean. </p>
+                        <p>This following video demonstrates the complementary filter and shows that the drift from the gyroscope has largely disappeared. </p>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/cNbOflLPqKo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-                        <h2 class="section-heading">Multiple Sensors</h2>
-                        <p>As mentioned before, I decided to programmatically change the addresses of the ToF sensors. To do this, I pulled the shutdown signal low on the first ToF sensor and reassigned the address of the second sensor to be 0x20. This address was arbitrarily chosen. </p>
-                        <script src="https://gist.github.com/umdiddle/fb7687c7c6f6d3418f72171c1b00cc00.js"></script>
-                        <script src="https://gist.github.com/umdiddle/247826230ac4228df1215c0ae4eaa2ec.js"></script>
-                        <p>Simultaneous reading from both sensors is shown below: </p>
-                        <img src="assets/img/lab3_bothreading.png" style="object-fit:contain; width:75%" alt="both sensors reading">
-                        <p>Thus, I was able to determine that I had both set up and read from both sensors correctly.</p>
-
-                        <h2 class="section-heading">Data Speed</h2>
-                        <p>In this portion of the lab looked at the speed of data coming from the ToF sensors. I used the following code snippet to print the time in milliseconds and sensor readings as quickly as they were available.</p>
-                        <p>With this, I found that the speed of the ToF sensor readings was significantly slower than the milliseconds readings. </p>
+                        <h2 class="section-heading">Car Recordings</h2>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/55sHPNclHq0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>
