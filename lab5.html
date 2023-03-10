@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>ECE 5160 Lab 1</title>
+        <title>ECE 5160 Lab 5</title>
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
@@ -33,18 +33,12 @@
             </div>
         </nav>
         <!-- Page Header-->
-        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+        <header class="masthead" style="background-image: url('assets/img/gradient_background.jpeg')">
             <div class="container position-relative px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <div class="post-heading">
-                            <h1>Man must explore, and this is exploration at its greatest</h1>
-                            <h2 class="subheading">Problems look mighty small from 150 miles up</h2>
-                            <span class="meta">
-                                Posted by
-                                <a href="#!">Start Bootstrap</a>
-                                on August 24, 2022
-                            </span>
+                            <h1>Lab 5: PWM</h1>
                         </div>
                     </div>
                 </div>
@@ -55,7 +49,48 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>The AD0_VAL determines the I2C address (1101000 or 1101001). This allows to possibly use more than one IMU on one I2C bus.</p>
+                        <h2 class="section-heading">Objective</h2>
+                        <p>In lab 5, I used PWM to control the speed of the motors and control the car with open loop control. </p>
+                        
+                        <h2 class="section-heading">Prelab</h2>
+                        <p>The following image shows how I connected the motor drivers, Artemis, and the battery. Note that we are parallel-coupling the inputs and outputs of the motor driver. </p>
+                        <img src="assets/img/lab5_connections.png" style="object-fit:contain; width:100%">
+                        <p>Pins 4, 6, 11, and 12 were used for the motor control. These were chosen since they were able to drive PWM signals, and the location of the pins was optimal for my sensor setup. The 850mAh battery was used for powering the motors, while the 650mAh battery was used for powering the Artemis. This is because the motors may create noise that would affect the logic signals. Additionally, the battery with the larger capacity and current was given to the motors, as they draw more power than the logic side of the Artemis. </p>
+                        
+                        <h2 class="section-heading">Power Supply</h2>
+                        <p>The following image shows the oscilloscope output from the motor drivers after providing a 50% duty cycle. As one can see, the . </p> 
+                        <img src="assets/img/lab3_tofimage.jpg" style="object-fit:contain; width:40%" alt="ToF sensor connected">
+                        <p>Note that I later added a wire connecting the shutdown pin of the sensor to pin 7 on the Artemis.</p>
+                        <p>To determine which wires corresponded with SDA and SCL, I referenced the following diagram from the QWIIC documentation: </p>
+                        <img src="assets/img/lab3_QwiicPinoutGraphic.jpg" style="object-fit:contain; width:75%" alt="QWIIC pinout">
+                        <p>The I2C address found by the Artemis is as follows: </p>
+                        <img src="assets/img/lab3_i2caddress.png" style="object-fit:contain; width:75%" alt="I2C address">
+                        <p>This was the expected 0x52 value right-shifted by 1, so this is reasonable, as the last bit is the read/write bit. </p>
+                        <p>The three modes were as follows: </p>
+                        <code>.setDistanceModeShort(); //1.3m </code> <br>
+                        <code>.setDistanceModeMedium(); //3m </code> <br>
+                        <code>.setDistanceModeLong(); //4m, Default </code>
+                        <p>These functions will optimize the sensor for different ranges by improving the accuracy. The comments for each of the different modes shows the distances that it is most useful for (1.3m, 3m, 4m). In this lab, I used the .setDistanceModeShort mode. </p>
+                        <p>I then ran the Example1_ReadDistance example and conducted a series of tests. The test setup is shown below:  </p>
+                        <img src="assets/img/lab3_testsetup.jpg" style="object-fit:contain; width:40%" alt="test setup">
+                        <p>I moved the sensor by 15cm between 5cm and 135cm (1.35m, just out of the range of the short distance mode range) and collected 100 samples at each point. The results are seen in the plots below: </p>
+                        <img src="assets/img/lab3_measurecompare.png" style="object-fit:contain; width:75%" alt="measurement plot">
+                        <img src="assets/img/lab3_differenceplot.png" style="object-fit:contain; width:75%" alt="difference plot">
+                        <p>These first plot looked at the accuracy of the measurements. As one can see, the average value over the trials closely matched that of the expected values. For the distances within the range of the sensor (less than 1.3m in short distance mode), the difference between the actual and expected values were very close (within 4mm), and were still relatively small (less than 8mm) for the data point outside of the sensor range. </p>
+                        <img src="assets/img/lab3_stddev.png" style="object-fit:contain; width:75%" alt="std dev plot">
+                        <p>This plot demonstrates the reliability of the sensor. Over 100 trials, the standard deviation was extremely small at each distance point. It increased as the distances increased and became exponentially larger once the sensor was out of the 1.3m range, which is to be expected. However, these results prove that this sensor is both accurate and reliable within the range set by the mode. </p>
+
+                        <h2 class="section-heading">Multiple Sensors</h2>
+                        <p>As mentioned before, I decided to programmatically change the addresses of the ToF sensors. To do this, I pulled the shutdown signal low on the first ToF sensor and reassigned the address of the second sensor to be 0x20. This address was arbitrarily chosen. </p>
+                        <script src="https://gist.github.com/umdiddle/fb7687c7c6f6d3418f72171c1b00cc00.js"></script>
+                        <script src="https://gist.github.com/umdiddle/247826230ac4228df1215c0ae4eaa2ec.js"></script>
+                        <p>Simultaneous reading from both sensors is shown below: </p>
+                        <img src="assets/img/lab3_bothreading.png" style="object-fit:contain; width:75%" alt="both sensors reading">
+                        <p>Thus, I was able to determine that I had both set up and read from both sensors correctly.</p>
+
+                        <h2 class="section-heading">Data Speed</h2>
+                        <p>In this portion of the lab looked at the speed of data coming from the ToF sensors. I used the following code snippet to print the time in milliseconds and sensor readings as quickly as they were available.</p>
+                        <p>With this, I found that the speed of the ToF sensor readings was significantly slower than the milliseconds readings. </p>
                     </div>
                 </div>
             </div>
