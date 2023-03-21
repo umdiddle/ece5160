@@ -106,7 +106,19 @@
                         <p>This following video demonstrates the complementary filter and shows that the drift from the gyroscope has largely disappeared. </p>
                         <iframe width="560" height="315" src="https://www.youtube.com/embed/cNbOflLPqKo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-                        <h2 class="section-heading">Car Recordings</h2>
+                        <h2>Sample Data</h2>
+                        <p>After removing delays and Serial.print statements, I was able to sample new values at a speed of TODO</p>
+                        <p>I then combined the code from before with the ble_arduino code to send timestamped pitch, roll, and yaw data, along with ToF data, back to the laptop over bluetooth. The code is seen below, along with the data: </p>
+                        <script src="https://gist.github.com/umdiddle/bfe71fa24789cd18413c1f1eecfbca8c.js"></script>
+                        <img src="assets/img/lab4_pitchrollyaw.png" style="object-fit:contain; width:100%">
+                        <p>To do this, I stored the values in separate arrays locally on the Artemis before sending the data over bluetooth as one message labeled by data type ("T:" for time, "P:" for pitch, etc) separated by the "|" character. This is to more efficiently be able to collect data, as each of the sensors will have data available at different times. Thus, the arrays were split into tof1, tof2, and imu data. </p>
+                        
+                        <h2 class="section-heading">Cut the Coord</h2>
+                        <p>At this point, the Artemis was powered off of the battery. I had two batteries from lab, a 3.7V 850mAh battery and a 3.7V 650mAh battery. We used the 650mAh battery to power the artemis, and the 850mAh battery to drive the motors. This is because the motors require more power, and the power and ground need to be separated to avoid noise from the motors interfering with the signals.</p>
+                        <p>After cutting the battery leads, I connected the cables from the 650mAh battery to the JST connector as shown in the image below. </p>
+                        <img src="assets/img/lab4_battery.png" style="object-fit:contain; width:100%">
+
+                        <h2 class="section-heading">Record a Stunt</h2>
                         <iframe width="560" height="315" src="https://www.youtube.com/embed/55sHPNclHq0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                     </div>
                 </div>
