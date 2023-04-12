@@ -53,8 +53,8 @@
                         <p>In lab 4, I learned how to get pitch, roll, and yaw from the IMU (Inertial Measurement Unit) sensors and transmitted the data over bluetooth from the Artemis. I also used batteries to power the Artemis so it could collect data while the car was running. This will eventually be used to collect orientation data for the robot later. </p>
                         
                         <h2 class="section-heading">Set Up the IMU</h2>
-                        <img src="assets/img/lab4_setup.png" style="object-fit:contain; width:75%">
-                        <p>I started off by running the IMU example code to ensure that the sensor worked. The following video demonstrates the sensor behavior as I rotate, flip, and accelerate the board.</p>
+                        <img src="assets/img/lab4_imu.jpg" style="object-fit:contain; width:75%">
+                        <p>The IMU was connected to the breakout board with a short I2C connector. I started off by running the IMU example code to ensure that the sensor worked. The following video demonstrates the sensor behavior as I rotate, flip, and accelerate the board.</p>
                         <iframe width="560" height="315" src="https://www.youtube.com/embed/IjjQEbhLoDY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                         <p>In the beginning, I simply rotate the sensor slowly, causing changes in the gyroscope data. Keeping the orientation the same and moving the sensor back and forth along various planes would cause the accelerometer to oscillate, as seen in the video. Most of the values started at 0, but accelerometer data for Z was larger than 0 due to the force of gravity. </p>
                         <p>In the code, the AD0_VAL is set to 1 as the default. This value sets the I2C address as binary 1101001, or hexadecimal 0x69. To use a second IMU, one would simply just need to modify the code for the second IMU to change the I2C address to a  different one.</p>
@@ -107,12 +107,16 @@
                         <iframe width="560" height="315" src="https://www.youtube.com/embed/cNbOflLPqKo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
                         <h2>Sample Data</h2>
-                        <p>After removing delays and Serial.print statements, I was able to sample new values at a speed of TODO</p>
+                        <p>After removing delays and Serial.print statements, I was able to sample new values at a speed of 2-3ms. </p>
                         <p>I then combined the code from before with the ble_arduino code to send timestamped pitch, roll, and yaw data, along with ToF data, back to the laptop over bluetooth. The code is seen below, along with the data: </p>
-                        <script src="https://gist.github.com/umdiddle/bfe71fa24789cd18413c1f1eecfbca8c.js"></script>
-                        <img src="assets/img/lab4_pitchrollyaw.png" style="object-fit:contain; width:100%">
-                        <p>To do this, I stored the values in separate arrays locally on the Artemis before sending the data over bluetooth as one message labeled by data type ("T:" for time, "P:" for pitch, etc) separated by the "|" character. This is to more efficiently be able to collect data, as each of the sensors will have data available at different times. Thus, the arrays were split into tof1, tof2, and imu data. </p>
+                        <script src="https://gist.github.com/umdiddle/9080b6633a8011af114f4fc0897a3c30.js"></script>
+                        <p>The above code called on the helper functions below to store the data then send the completed arrays over bluetooth. </p>
+                        <script src="https://gist.github.com/umdiddle/af5b1bfe47abf94442d00136c3e881f1.js"></script>
                         
+                        <p>To do this, I stored the values in two separate arrays locally on the Artemis before sending the data over bluetooth as one message labeled by data type ("T:" for time, "IP:" for pitch, etc) separated by the "|" character. This is to more efficiently be able to collect data, as each of the sensors will have data available at different times. Thus, the arrays were split into tof1, tof2, and imu data. The output is shown below: </p>
+                        <img src="assets/img/lab4_tof_bluetooth.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab4_imu_bluetooth.png" style="object-fit:contain; width:100%">
+
                         <h2 class="section-heading">Cut the Coord</h2>
                         <p>At this point, the Artemis was powered off of the battery. I had two batteries from lab, a 3.7V 850mAh battery and a 3.7V 650mAh battery. We used the 650mAh battery to power the artemis, and the 850mAh battery to drive the motors. This is because the motors require more power, and the power and ground need to be separated to avoid noise from the motors interfering with the signals.</p>
                         <p>After cutting the battery leads, I connected the cables from the 650mAh battery to the JST connector as shown in the image below. </p>
