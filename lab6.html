@@ -38,7 +38,7 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <div class="post-heading">
-                            <h1>Lab 5: PWM</h1>
+                            <h1>Lab 6: PID</h1>
                         </div>
                     </div>
                 </div>
@@ -50,93 +50,55 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <h2 class="section-heading">Objective</h2>
-                        <p>In lab 5, I used PWM to control the speed of the motors and control the car with open loop control. </p>
+                        <p>In lab 6, I implemented closed-loop control through PID control. For this task, I chose to do position control, in which I sped towards a wall and stopped 1ft in front of it. </p>
                         
                         <h2 class="section-heading">Prelab</h2>
-                        <p>The following image shows how I connected the motor drivers, Artemis, and the battery. Note that we are parallel-coupling the inputs and outputs of the motor driver. </p>
-                        <img src="assets/img/lab5_connections.png" style="object-fit:contain; width:100%">
-                        <p>Pins 4, 6, 11, and 12 were used for the motor control. These were chosen since they were able to drive PWM signals, and the location of the pins was optimal for my sensor setup. The 850mAh battery was used for powering the motors, while the 650mAh battery was used for powering the Artemis. This is because the motors may create noise that would affect the logic signals. Additionally, the battery with the larger capacity and current was given to the motors, as they draw more power than the logic side of the Artemis. </p>
-                        
-                        <h2 class="section-heading">Power Supply</h2>
-                        <p>The following images show the oscilloscope outputs from the motor driver for different PWM signals, as well as the hookup diagram used to achieve these signals. The power supply is set up to approximately match the voltage provided by the battery; I set it to 3.3V (slightly lower) to be safe. The current limit was set to around 5A, but the motor driver pulled much less than that while operating. </p> 
-                        <img src="assets/img/lab5_oscopeconnection.png" style="object-fit:contain; width:100%">
-                        
-                        <p>The following shows the second input of the motor driver being driven with 50% duty cycle while the first input is held low. </p>
-                        <script src="https://gist.github.com/umdiddle/3360fcbd06415b69efd303c9f6b0b0bb.js"></script>
-                        <img src="assets/img/lab5_oscope1.jpg" style="object-fit:contain; width:100%">
+                        <p>For the prelab, I created a setup to allow for easy debugging when testing the task. To do this, I made sure that I could do the following: </p>
+                        <ul>
+                            <li>Read user input over bluetooth (in this case, the time to run the PID control and the parameters)</li>
+                            <li>Execute the PID control</li>
+                            <li>Send the timestamped motor PWM values and ToF distance information back over bluetooth.  </li>
+                        </ul>
 
-                        <p>The following shows the second input of the motor driver being driven with 100% duty cycle while the first input is held low. </p>
-                        <script src="https://gist.github.com/umdiddle/8bedd78bc13f2413686d898267eb0c62.js"></script>
+                        <p><b>Bluetooth</b></p>
+                        <p>Sending the data every time a new reading was available would be too slow. Thus, I stored all of the data in arrays to send after the main control loop finished. There was just one command used, TUNE_PID, which had a time limit for the duration to make sure the robot would not run forever. To send data over bluetooth, I utilized the same format as with other labs. I sent the data as part of the send_command argument in the order of number of time to run the command (in ms), P (proportional parameter), and I (integral parameter). On the Arduino side, I read these values and assigned them to their corresponding variables. </p>
+                        <p>The following code shows sending the input over bluetooth in the Jupyter notebook with example 20s, kP = 0.03 and kI = 0.001. </p>
+                        <script src="https://gist.github.com/umdiddle/4ef15d0e88e702737ec0d3ebf3023479.js"></script>
+                        <p>The following code shows receiving the input over bluetooth in the Arduino code. </p>
+                        <script src="https://gist.github.com/umdiddle/bddc9d56403db47efa99271006efe206.js"></script>
 
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ohkTsOTHC5s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        <script src="https://gist.github.com/umdiddle/8699686bff2e1604b03a3f638930286e.js"></script>
-                        <img src="assets/img/lab5_oscope2_100duty.jpg" style="object-fit:contain; width:100%">
+                        <p>To receive data over bluetooth, I again utilized the same format as with other labs. From the Arduino side, I stored the data in arrays that held both the time the data was stored and the actual data (PWM and ToF data).</p>
+                        <p>The following code shows receiving the input over bluetooth in the Arduino code. </p>
+                        <script src="https://gist.github.com/umdiddle/ed47fa1446630744677628e092a12932.js"></script>
+                        <p>On the python side, I created a handler that parsed the PID data. I used the "|" separator to split the data and used the identifier "T", "D2", and "V" to identify which type of data it was. I then stored these in arrays to be easily plotted. </p>
+                        <script src="https://gist.github.com/umdiddle/9cd0b9b5a1656b84a6fc8c8f2d6f08c5.js"></script>
 
-                        <p>The following shows the first input of the motor driver being driven with 50% duty cycle while the second input is held low. </p>
-                        <script src="https://gist.github.com/umdiddle/b3c4ddac4ec852c1d57b9e34c4112c1c.js"></script>
-                        <img src="assets/img/lab5_oscope3.jpg" style="object-fit:contain; width:100%">
+                        <p>Note: I still required significant time in-lab to fix errors for this section.</p>
 
-                        <p>The following shows the motor being driven both backwards and forwards. I wrote a few helper functions to more easily control the robot's actions. </p>
-                        <script src="https://gist.github.com/umdiddle/8bedd78bc13f2413686d898267eb0c62.js"></script>
-                        <script src="https://gist.github.com/umdiddle/7facc923f19dacbfc01940f1ed7cc71d.js"></script>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/zMmpirkjoL4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-                        <p>This same process was then repeated for the second motor driver. The same code and setup was used for the second motor driver with the exception of LIN1 and LIN2 being replaced with RIN1 and RIN2. The same behavior and oscilloscope readings were acquired. Thus, I was able to switch to battery power and spin both wheels in both directions, as shown in this video. </p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/5UAQ1obn5Ig" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        <h2 class="section-heading">Lab Tasks</h2>
+                        <p><b>Proportional</b> </p>
+                        <p>For this lab, I chose task A. In this task, I needed to drive a car from around 2-4m from the wall and drive it towards the wall as fast as possible, stopping it a foot before the wall. I first started by using the P of the PID. </p>
+                        <p>After receiving a ToF reading, I calculated the error of ToF reading - target value (304 mm). This error was then multiplied by the kP value that was set by the user for the new motor value. The code is below: </p>
+                        <script src="https://gist.github.com/umdiddle/dc4fd592205d33371b3acedf484d28af.js"></script>
+                        <p>Note that since the robot does not move when the motor value is less than 50, the code exits. </p>
+                        <p>After multiple trials where kP was set to 0.03, 0.05, 0.07, 0.1, 0.5, etc, I found that the kP value that worked was 0.05. With this, the robot did not come close to hitting the wall and was able to successfully go to the target distance. The video for the kP run is show below. </p>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/uvAoa0mCWHA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-                        <h2 class="section-heading">Car Components</h2>
-                        <p>The following image shows the placement of all of the components in the car. </p>
-                        <img src="assets/img/lab5_carlabeled.png" style="object-fit:contain; width:100%">
+                        <p><b>Proportional and Integral</b> </p>
+                        <p>As an M.Eng student, I had to implement either PI, PD, or PID controller. For this, I chose to implement a PI controller. </p>
+                        <p>I kept track of the time between ToF readings using the variables last_terror (last time of error) and curr_terror (current time of error). The same error value from the previous section was used. However, the a new variable I_sum was se to <code>(error * ((curr_terror - last_terror)/1000))</code>, where 1000 scaled the dt to seconds rather to milliseconds. This value added up all of the errors over the course of the tuning, allowing for higher stability. Additionally, the calculation for the motor value changed to be <code>(kP * error + kI * I_sum)</code> to include the integral portion of the PI controller. </p>
+                        <p>To tune this, I first set the value of kP higher until I got oscillations. This happened to be kP = 0.1. Then, I set this value to be half of its value to tune the integral component. I slowly increased the kI value until the robot became as stable as possible, slightly overshooting the target and then returning to the proper target location. One thing to note is that with the kI component, there was oscillation that occurred around the target due to the accumulation of error and the fact that the motors could not account for minute errors. However, with further tuning, these oscillations became very small.</p> 
+                        <p>The code for this section as well as the plots are shown below: </p>
+                        <script src="https://gist.github.com/umdiddle/eb391f5a07e10cfe58fb8b801f1ebf56.js"></script>
+                        <img src="assets/img/lab6_PI_TOF_working.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab6_PI_motorval_working.jpg" style="object-fit:contain; width:100%">
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/_zspx7cBDCs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-                        <h2 class="section-heading">PWM Lower Limit</h2>
-                        <p>Using the same structure as before, I modified the analog PWM values to be as small as possible while allowing for the robot to move. To do this, I started with a PWM value of 40 and raised it until the robot began moving. For the MEng task, I used the same method, finding the minimum PWM value needed to keep the robot moving after the initial start. Since I tested that all of the helper functions already worked as expected while the robot was off of the ground, the inability to move was most likely due to friction. </p>
-                        <p>The lower limit for the PWM are as follows: </p> 
-                        <table style="border:1px solid black">
-                            <tr style="border:1px solid black">
-                                <th>Motion</th>
-                                <th>PWM value</th>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Start from rest</td>
-                                <td>75</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Lowest speed after starting</td>
-                                <td>60</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Right turn from rest</td>
-                                <td>Unable to start from rest, even at max PWM</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Left turn from rest</td>
-                                <td>Unable to start from rest, even at max PWM</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Right turn after starting forward</td>
-                                <td>Unable to turn, even at max PWM</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Left turn after starting forward</td>
-                                <td>Unable to turn, even at max PWM</td>
-                            </tr>
-                        </table>
-                        <p>The following video demonstrates the robot using the higher 75 PWM value to overcome friction before driving forward at the slowest speed with 60 PWM value. </p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/j0VtzA3CjEY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        <p>I found that the robot was able to settle at its slowest speed within 500 ms. </p>
-
-                        <h2 class="section-heading">Open Loop Control</h2>
-                        <p>The following video demonstrates the robot driving forwards, backwards, and then turning left then right, making an arc. The code is attached underneath as a gist. Since my room is small, I had to lower the speed of the robot.</p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/Tx3-yteOlEc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        <script src="https://gist.github.com/umdiddle/ed975b1507b993fafaae5da8111b8539.js"></script>
-
-                        <h2 class="section-heading">Calibration</h2>
-                        <p>Surprisingly, I found that the difference between the motors was very minimal, and that the robot was able to go in a straight line without modifications to the helper functions defined above. The following demonstrates the robot moving in a straight line with the motor drivers at 50% duty cycle. </p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ZI4QSw5cm5g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        
-                        <h2 class="section-heading">analogWrite Frequency</h2>
-                        <p>For the Artemis board, analogWrite only has one frequency (500 Hz). However, a PWM signal with a much higher or much lower frequency can be created with modifications to the counter/timer and the repeated pulse mode. For example, if the desired PWM frequency was around 3kHz, with a desired 75% duty cycle, we would first configure the clock to output at that frequency. Then, to achieve a 75% duty cycle, we would then set the CMPR0 register to be 75% of the maximum count value. Thus, every time the counter reached that value, the output value would toggle. After the counter reaches its maximum value and resets to 0, it then goes back to its original value and restarts the process. </p>
-                        <p>According to the motor driver datasheet, the range of input PWM frequencies are 0 Hz to 200 kHz. However, it states that "the voltages applied to the inputs should have at least 800 ns of pulse width to ensure detection." With 500 Hz, this results in the (theoretical) range from ~0% duty cycle to ~100% duty cycle. With a higher PWM frequency, this usable duty cycle range reduces due to the smaller PWM period. As seen in these videos, the 500 Hz input frequency works well, so there is no need to increase the frequency. </p>
+                        <p><b>Wind-Up Protection</b> </p>
+                        <p>I had to implement wind-up protection for this lab. Wind-up refers to the way that overshoot will happen when a large error happens due to the integral accumulation of errors. This is important especially in the case with a PI controller, since the errors are very large initially due to the far distance from the wall. If the robot immediately makes this error smaller by moving quickly towards the wall, there is a chance that the robot will not overshoot. However, if this is not the case, such as if the robot is on a surface that provides a lot of friction (ex: carpet), the robot may move slower, causing the large error to accumulate. Thus, when the robot does begin moving, the controller is unable to reflect this and the robot overshoots the target significantly. </p>
+                        <p>To prevent this, I utilized clamping. The speed of the motor was already limited within the code. However, I added the following lines of code to clamp the I_sum variable to be 1000. </p>
+                        <script src="https://gist.github.com/umdiddle/a7352e3b196799b3bf5b22e99d947147.js"></script>
                     </div>
                 </div>
             </div>
