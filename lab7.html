@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>ECE 5160 Lab 5</title>
+        <title>ECE 5160 Lab 7</title>
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
@@ -38,7 +38,7 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <div class="post-heading">
-                            <h1>Lab 5: PWM</h1>
+                            <h1>Lab 7: Kalman Filter</h1>
                         </div>
                     </div>
                 </div>
@@ -50,93 +50,32 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <h2 class="section-heading">Objective</h2>
-                        <p>In lab 5, I used PWM to control the speed of the motors and control the car with open loop control. </p>
+                        <p>In lab 7, I implemented a Kalman Filter to allow the robot to supplement the ToF data, which was very slow, to drive even more quickly towards the wall. I chose task A in the previous lab, so I continued to use the same lab. </p>
                         
-                        <h2 class="section-heading">Prelab</h2>
-                        <p>The following image shows how I connected the motor drivers, Artemis, and the battery. Note that we are parallel-coupling the inputs and outputs of the motor driver. </p>
-                        <img src="assets/img/lab5_connections.png" style="object-fit:contain; width:100%">
-                        <p>Pins 4, 6, 11, and 12 were used for the motor control. These were chosen since they were able to drive PWM signals, and the location of the pins was optimal for my sensor setup. The 850mAh battery was used for powering the motors, while the 650mAh battery was used for powering the Artemis. This is because the motors may create noise that would affect the logic signals. Additionally, the battery with the larger capacity and current was given to the motors, as they draw more power than the logic side of the Artemis. </p>
+                        <h2 class="section-heading">Estimating Drag and Momentum </h2>
+                        <p>I first started by estimating the drag and momentum for my system. To do this, I setup the code to, upon receiving the command over bluetooth, stay in place for 1 second, then drive towards the wall at the same PWM value that was used in the previous lab (around 127) until it was a foot away from the wall. I did not use PID control here, as I wanted to ensure that I was able to reach steady state and using PID control would slow down the robot at the end. I stored both motor values and ToF values for the entire duration that this ran. </p>
+                        <p>The code I wrote for this control is shown below: </p>
+                        <script src="https://gist.github.com/umdiddle/7ea45c4c47a800cbb14a3c001ed17d37.js"></script>
+                        <p>The graphs from this are shown below: </p>
+                        <img src="assets/img/lab7_motorval.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_tofdata_unfiltered.png" style="object-fit:contain; width:100%">
+                        <p>To calculate the velocity, I discovered that my ToF data was very noisy and would result in a garbage velocity plot. Thus, I filtered out the data to remove the random 0's and small outliers that appeared. This resulted in the following ToF and velocity plots. </p>
+                        <img src="assets/img/lab7_tofdata_filtered.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_velocity_filtered.png" style="object-fit:contain; width:100%">
+                        <p>Note that I ignored the large velocity spike that occured around 428 seconds in my calculations. </p>
+                        <p>From the velocity graph, I found that the steady state speed was -1426.229508 mm/s, resulting in a drag of 0.00070115. </p>
+                        <p>90% rise time occurred approximately 1.9 seconds from the start of driving. Thus, using the equation mass = (-drag)*(90% rise time) / ln(0.1), mass = 0.000601093. These were the values that I used for my Kalman Filter. </p>
                         
-                        <h2 class="section-heading">Power Supply</h2>
-                        <p>The following images show the oscilloscope outputs from the motor driver for different PWM signals, as well as the hookup diagram used to achieve these signals. The power supply is set up to approximately match the voltage provided by the battery; I set it to 3.3V (slightly lower) to be safe. The current limit was set to around 5A, but the motor driver pulled much less than that while operating. </p> 
-                        <img src="assets/img/lab5_oscopeconnection.png" style="object-fit:contain; width:100%">
-                        
-                        <p>The following shows the second input of the motor driver being driven with 50% duty cycle while the first input is held low. </p>
-                        <script src="https://gist.github.com/umdiddle/3360fcbd06415b69efd303c9f6b0b0bb.js"></script>
-                        <img src="assets/img/lab5_oscope1.jpg" style="object-fit:contain; width:100%">
+                        <h2 class="section-heading">Kalman Filter</h2>
+                        <p>To initialize the arrays, I made sure </p>
+                        <script src="https://gist.github.com/umdiddle/7fedaefce917ac54479d769314c5845a.js"></script>
+                        <p>Because I accidentally cleared my notebook from the previous lab, I had to retake the data. This is shown below: </p>
+                        <img src="assets/img/lab7_pid_tof.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_pid_motorval.png" style="object-fit:contain; width:100%">
+                        <p>Like the previous lab, the data was very noisy and sparse. Thus, while my motor values and ToF data were arrays of the same size, I still interpolated the data to allow the KF to work better. </p>
 
-                        <p>The following shows the second input of the motor driver being driven with 100% duty cycle while the first input is held low. </p>
-                        <script src="https://gist.github.com/umdiddle/8bedd78bc13f2413686d898267eb0c62.js"></script>
-
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ohkTsOTHC5s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        <script src="https://gist.github.com/umdiddle/8699686bff2e1604b03a3f638930286e.js"></script>
-                        <img src="assets/img/lab5_oscope2_100duty.jpg" style="object-fit:contain; width:100%">
-
-                        <p>The following shows the first input of the motor driver being driven with 50% duty cycle while the second input is held low. </p>
-                        <script src="https://gist.github.com/umdiddle/b3c4ddac4ec852c1d57b9e34c4112c1c.js"></script>
-                        <img src="assets/img/lab5_oscope3.jpg" style="object-fit:contain; width:100%">
-
-                        <p>The following shows the motor being driven both backwards and forwards. I wrote a few helper functions to more easily control the robot's actions. </p>
-                        <script src="https://gist.github.com/umdiddle/8bedd78bc13f2413686d898267eb0c62.js"></script>
-                        <script src="https://gist.github.com/umdiddle/7facc923f19dacbfc01940f1ed7cc71d.js"></script>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/zMmpirkjoL4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-                        <p>This same process was then repeated for the second motor driver. The same code and setup was used for the second motor driver with the exception of LIN1 and LIN2 being replaced with RIN1 and RIN2. The same behavior and oscilloscope readings were acquired. Thus, I was able to switch to battery power and spin both wheels in both directions, as shown in this video. </p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/5UAQ1obn5Ig" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-                        <h2 class="section-heading">Car Components</h2>
-                        <p>The following image shows the placement of all of the components in the car. </p>
-                        <img src="assets/img/lab5_carlabeled.png" style="object-fit:contain; width:100%">
-
-                        <h2 class="section-heading">PWM Lower Limit</h2>
+                        <h2 class="section-heading">Extrapolation</h2>
                         <p>Using the same structure as before, I modified the analog PWM values to be as small as possible while allowing for the robot to move. To do this, I started with a PWM value of 40 and raised it until the robot began moving. For the MEng task, I used the same method, finding the minimum PWM value needed to keep the robot moving after the initial start. Since I tested that all of the helper functions already worked as expected while the robot was off of the ground, the inability to move was most likely due to friction. </p>
-                        <p>The lower limit for the PWM are as follows: </p> 
-                        <table style="border:1px solid black">
-                            <tr style="border:1px solid black">
-                                <th>Motion</th>
-                                <th>PWM value</th>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Start from rest</td>
-                                <td>75</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Lowest speed after starting</td>
-                                <td>60</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Right turn from rest</td>
-                                <td>Unable to start from rest, even at max PWM</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Left turn from rest</td>
-                                <td>Unable to start from rest, even at max PWM</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Right turn after starting forward</td>
-                                <td>Unable to turn, even at max PWM</td>
-                            </tr>
-                            <tr style="border:1px solid black">
-                                <td>Left turn after starting forward</td>
-                                <td>Unable to turn, even at max PWM</td>
-                            </tr>
-                        </table>
-                        <p>The following video demonstrates the robot using the higher 75 PWM value to overcome friction before driving forward at the slowest speed with 60 PWM value. </p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/j0VtzA3CjEY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        <p>I found that the robot was able to settle at its slowest speed within 500 ms. </p>
-
-                        <h2 class="section-heading">Open Loop Control</h2>
-                        <p>The following video demonstrates the robot driving forwards, backwards, and then turning left then right, making an arc. The code is attached underneath as a gist. Since my room is small, I had to lower the speed of the robot.</p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/Tx3-yteOlEc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        <script src="https://gist.github.com/umdiddle/ed975b1507b993fafaae5da8111b8539.js"></script>
-
-                        <h2 class="section-heading">Calibration</h2>
-                        <p>Surprisingly, I found that the difference between the motors was very minimal, and that the robot was able to go in a straight line without modifications to the helper functions defined above. The following demonstrates the robot moving in a straight line with the motor drivers at 50% duty cycle. </p>
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ZI4QSw5cm5g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        
-                        <h2 class="section-heading">analogWrite Frequency</h2>
-                        <p>For the Artemis board, analogWrite only has one frequency (500 Hz). However, a PWM signal with a much higher or much lower frequency can be created with modifications to the counter/timer and the repeated pulse mode. For example, if the desired PWM frequency was around 3kHz, with a desired 75% duty cycle, we would first configure the clock to output at that frequency. Then, to achieve a 75% duty cycle, we would then set the CMPR0 register to be 75% of the maximum count value. Thus, every time the counter reached that value, the output value would toggle. After the counter reaches its maximum value and resets to 0, it then goes back to its original value and restarts the process. </p>
-                        <p>According to the motor driver datasheet, the range of input PWM frequencies are 0 Hz to 200 kHz. However, it states that "the voltages applied to the inputs should have at least 800 ns of pulse width to ensure detection." With 500 Hz, this results in the (theoretical) range from ~0% duty cycle to ~100% duty cycle. With a higher PWM frequency, this usable duty cycle range reduces due to the smaller PWM period. As seen in these videos, the 500 Hz input frequency works well, so there is no need to increase the frequency. </p>
                     </div>
                 </div>
             </div>
