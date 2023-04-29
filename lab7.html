@@ -67,15 +67,27 @@
                         <p>90% rise time occurred approximately 1.9 seconds from the start of driving. Thus, using the equation mass = (-drag)*(90% rise time) / ln(0.1), mass = 0.000601093. These were the values that I used for my Kalman Filter. </p>
                         
                         <h2 class="section-heading">Kalman Filter</h2>
-                        <p>To initialize the arrays, I made sure </p>
-                        <script src="https://gist.github.com/umdiddle/7fedaefce917ac54479d769314c5845a.js"></script>
+                        <p>To initialize the arrays, I used the drag and mass that I calculated in the previous section and plugged it into the equations that were given in class, shown below. The equation is in the format dx/dt = Ax + Bu. C is [-1 0] because there is 1 state (distance from the wall) and the value is negative since the negative distance is being measured. </p>
+                        <img src="assets/img/lab7_matrices.png" style="object-fit:contain">
+                        <p>The Kalman filter initialization and code is shown below. The A, B, and C arrays discussed previously are in the initialization section. Process and measurement noise is discussed later. </p>
+                        <div style="text-align: center;">
+                            <iframe src="assets/forwebsitelab7.html" width="700" height="300">
+                            </iframe>
+                        </div>
                         <p>Because I accidentally cleared my notebook from the previous lab, I had to retake the data. This is shown below: </p>
                         <img src="assets/img/lab7_pid_tof.png" style="object-fit:contain; width:100%">
                         <img src="assets/img/lab7_pid_motorval.png" style="object-fit:contain; width:100%">
-                        <p>Like the previous lab, the data was very noisy and sparse. Thus, while my motor values and ToF data were arrays of the same size, I still interpolated the data to allow the KF to work better. </p>
+                        <p>Like the previous lab, the data was very noisy and sparse. Thus, while my motor values and ToF data were arrays of the same size, I interpolated the data to allow the KF to work better. </p>
+                        <img src="assets/img/lab7_pid_tof_interp.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_pid_motorval_interp.png" style="object-fit:contain; width:100%">
+                        <p>I looped through the data, first calling the Kalman filter with sigma1, sigma2, and sigma3 for the process and measurement noise equal to 20. This led to folowing results: </p>
+                        <img src="assets/img/lab7_kfresult_smallersigma.png" style="object-fit:contain; width:100%">
+                        <p>Here, you notice that the Kalman Filter does not accurately represent the robot's state when driving towards the wall. Thus, I increased the process uncertainty to have values of sigma1=sigma2=50. Sigma3 stayed the same. I got the following results: </p>
+                        <img src="assets/img/lab7_kfresult.png" style="object-fit:contain; width:100%">
+                        <p>Note that with these values, the KF is able to more accurately represent the robot's state. This means that in this case, the sensor values are "trusted" more than the motor values. </p>
 
                         <h2 class="section-heading">Extrapolation</h2>
-                        <p>Using the same structure as before, I modified the analog PWM values to be as small as possible while allowing for the robot to move. To do this, I started with a PWM value of 40 and raised it until the robot began moving. For the MEng task, I used the same method, finding the minimum PWM value needed to keep the robot moving after the initial start. Since I tested that all of the helper functions already worked as expected while the robot was off of the ground, the inability to move was most likely due to friction. </p>
+                        <p>In this section, I had to extrapolate the ToF sensor values so that the robot was able to run faster. This was used when the ToF data was unavailable. To do this, I used the last two values to create the expected change in dx and then used the amount of time that had elapsed since the last reading to estimate the next ToF value. </p>
                     </div>
                 </div>
             </div>
