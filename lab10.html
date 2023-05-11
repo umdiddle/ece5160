@@ -57,6 +57,20 @@
                         <p><b>Grid Localization</b></p>
                         <p>The robot's state is represented by a 3D array of (x, y, theta). Due to us using tiles that are 1ftx1ft in real life, we use imperial units to make our lives easier. :)</p>
                         <p>Since there are an infinite number of locations where the robot could be within any given space, we discretize the map into a 3D grid space. The size of each grid cell is (0.3048, 0.3048, 20) and the total number of cells along each axis are (12,9,18). Each grid stores the probability that the robot is in that cell. All of these probabilities sum to 1 and are updated in real-time as the robot runs. The cell with the highest probability represents the estimated pose of the robot. </p>
+                        <p>The Bayes filter algorithm is shown below: </p>
+                        <img src="assets/img/lab10_bayesalgorithm.jpg" style="object-fit:contain; width:100%">
+
+                        <h2 class="section-heading">Implementation</h2>
+                        <p>In this lab, the robot drove around in simulation according to a set path and collected both odometry and distance data. We had to implement a series of functions to get the Bayes filter working. </p>
+
+                        <h2 class="section-heading">compute_control</h2>
+                        <p>Since we are given the previous and current odometry poses, we need to extract the control information, u, for the filter. This function does just that. The implementation was based on the following equations from lecture: </p>
+                        <img src="assets/img/lab10_compute_control_alogirthm.jpg" style="object-fit:contain; width:100%">
+                        <p>Thus, the code looks like the following: </p>
+                        <script src="https://gist.github.com/umdiddle/48d44ca736cd6d2c5af50124f7930c31.js"></script>
+
+                        <h2 class="section-heading">odom_motion_model</h2>
+                        <p></p>
                     </div>
                 </div>
             </div>
