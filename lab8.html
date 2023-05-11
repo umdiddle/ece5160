@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>ECE 5160 Lab 8</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">ECE 5160 Home</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/gradient_background.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Lab 8: Stunts</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <h2 class="section-heading">Objective</h2>
+                        <p>In lab 8, I used everything that we learned from the previous labs to do a stunt. Again, since I chose task A in the earlier labs, I decided to do the stunt for position control, which started around 3 meters from the wall, drove towards the wall until around it was around 0.5m away, then performed a flip and drove back. </p>
+                        
+                        <h2 class="section-heading">Estimating Drag and Momentum </h2>
+                        <p>I first started by estimating the drag and momentum for my system. To do this, I setup the code to, upon receiving the command over bluetooth, stay in place for 1 second, then drive towards the wall at the same PWM value that was used in the previous lab (around 127) until it was a foot away from the wall. I did not use PID control here, as I wanted to ensure that I was able to reach steady state and using PID control would slow down the robot at the end. I stored both motor values and ToF values for the entire duration that this ran. </p>
+                        <p>The code I wrote for this control is shown below: </p>
+                        <script src="https://gist.github.com/umdiddle/7ea45c4c47a800cbb14a3c001ed17d37.js"></script>
+                        <p>The graphs from this are shown below: </p>
+                        <img src="assets/img/lab7_motorval.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_tofdata_unfiltered.png" style="object-fit:contain; width:100%">
+                        <p>To calculate the velocity, I discovered that my ToF data was very noisy and would result in a garbage velocity plot. Thus, I filtered out the data to remove the random 0's and small outliers that appeared. This resulted in the following ToF and velocity plots. </p>
+                        <img src="assets/img/lab7_tofdata_filtered.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_velocity_filtered.png" style="object-fit:contain; width:100%">
+                        <p>Note that I ignored the large velocity spike that occured around 428 seconds in my calculations. </p>
+                        <p>From the velocity graph, I found that the steady state speed was -1426.229508 mm/s, resulting in a drag of 0.00070115. </p>
+                        <p>90% rise time occurred approximately 1.9 seconds from the start of driving. Thus, using the equation mass = (-drag)*(90% rise time) / ln(0.1), mass = 0.000601093. These were the values that I used for my Kalman Filter. </p>
+                        
+                        <h2 class="section-heading">Kalman Filter</h2>
+                        <p>To initialize the arrays, I used the drag and mass that I calculated in the previous section and plugged it into the equations that were given in class, shown below. The equation is in the format dx/dt = Ax + Bu. C is [-1 0] because there is 1 state (distance from the wall) and the value is negative since the negative distance is being measured. </p>
+                        <img src="assets/img/lab7_matrices.png" style="object-fit:contain">
+                        <p>The Kalman filter initialization and code is shown below. The A, B, and C arrays discussed previously are in the initialization section. Process and measurement noise is discussed later. </p>
+                        <div style="text-align: center;">
+                            <iframe src="assets/forwebsitelab7.html" width="700" height="300">
+                            </iframe>
+                        </div>
+                        <p>Because I accidentally cleared my notebook from the previous lab, I had to retake the data. This is shown below: </p>
+                        <img src="assets/img/lab7_pid_tof.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_pid_motorval.png" style="object-fit:contain; width:100%">
+                        <p>Like the previous lab, the data was very noisy and sparse. Thus, while my motor values and ToF data were arrays of the same size, I interpolated the data to allow the KF to work better. </p>
+                        <img src="assets/img/lab7_pid_tof_interp.png" style="object-fit:contain; width:100%">
+                        <img src="assets/img/lab7_pid_motorval_interp.png" style="object-fit:contain; width:100%">
+                        <p>I looped through the data, first calling the Kalman filter with sigma1, sigma2, and sigma3 for the process and measurement noise equal to 20. This led to folowing results: </p>
+                        <img src="assets/img/lab7_kfresult_smallersigma.png" style="object-fit:contain; width:100%">
+                        <p>Here, you notice that the Kalman Filter does not accurately represent the robot's state when driving towards the wall. Thus, I increased the process uncertainty to have values of sigma1=sigma2=50. Sigma3 stayed the same. I got the following results: </p>
+                        <img src="assets/img/lab7_kfresult.png" style="object-fit:contain; width:100%">
+                        <p>Note that with these values, the KF is able to more accurately represent the robot's state. This means that in this case, the sensor values are "trusted" more than the motor values. </p>
+
+                        <h2 class="section-heading">Extrapolation</h2>
+                        <p>In this section, I had to extrapolate the ToF sensor values so that the robot was able to run faster. This was used when the ToF data was unavailable. To do this, I used the last two values to create the expected change in dx and then used the amount of time that had elapsed since the last reading to estimate the next ToF value. </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Your Website 2022</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
