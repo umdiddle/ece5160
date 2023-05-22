@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>ECE 5160 Lab 8</title>
+        <title>ECE 5160 Lab 9</title>
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
@@ -50,7 +50,46 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <h2 class="section-heading">Objective</h2>
-                        <p>In lab 9, I used PID control and IMU/motor/ToF data to take data in a circle and in posprocessing, map out the area that the robot was in.  </p>
+                        <p>In lab 9, I used PID control and IMU/motor/ToF data to take data in a circle and in posprocessing, create a map of the robot's environment. To do this, I placed the robot in a few marked locations in the lab and had it spin around its own axis, collecting ToF data the entire time. I then used transformation matrices to combine all these measurements and eventually build an accurate map of the room.</p>
+                        <p>I worked with Eshita Sangani on this lab.</p>
+
+                        <h2 class="section-heading">Control</h2>
+                        <p>I chose to use angular speed conrol with raw gyroscope values to control the spinning of the robot. This technique uses raw gyroscope data -- specifically the z-axis daa -- that is recorded by the IMU while spinning the robot to ensure a constant angular velocity. Closed-loop control was preferred in this situation over open-loop control because it resulted in more accurate data; thus, postprocessing also became easier.</p>
+                        <p>For this control the goal was to spin my robot every 20 degrees and record data accordingly. The code is as follows: </p>
+                        <script src="https://gist.github.com/umdiddle/dafb44c0493504e8a9ce0c11c6910e35.js"></script>
+                        <p>The 90 motor value comes from using open loop control to determine the minimum speed to spin the robot at. At this speed, I was able to get 150 data points in one spin, or around 15 data points every second.</p>
+                        <p>I first wanted to tune the PID controller, so I started out using the 0.05 as my kP value and was able to get fairly consistent behavior with a kP value of 0.03. I then tried to move on to implementing the integral and derivativve terms. However, the results were very inconsistent at first due to the battery power; thus the integral term was not added due to the windup from these small errors that would happen and would cause larger fluctuations to occur. I tried adding the D term but it wasn't consistent enough to justify incorporating it.</p>
+                        <p>The resulting angular velocity is plotted below; note that due to the robot being unable to turn well, the motor values increase then decreases. I was unable to fix this behavior in lab. </p>
+                        <img src="assets/img/lab9_motorval.png" style="object-fit:contain; width:60%">
+                        <img src="assets/img/lab9_ang.jpg" style="object-fit:contain; width:60%">
+                        <p>While testing, I noticed that the gyroscope z axis daa was very inconsistent, wih angles that ranged from -50 to +50 while spinning. After asking a TA, I found out that this was due to my IMU being placed on its side, with the z-axis direction facing horiontally rather than vertically. After I fixed this, I was able to get the robot spinning correctly, as seen below. </p>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/ML6zMDpcjAQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+                        <h2 class="section-heading">Read Out Distances</h2>
+                        <p>I placed the robot at each of the marked points in lab and had the robot spin around, collecting ToF data. The associated polar plots and TOF vs Time plots are shown for each point.</p>
+                        <p>Location 1: (-3,-2)</p>
+                        <img src="assets/img/lab9_tofloc1.png" style="object-fit:contain; width:50%">
+                        <img src="assets/img/lab9_tofloc1_flat.png" style="object-fit:contain; width:50%">
+                        <p>Location 2: (5,-3)</p>
+                        <img src="assets/img/lab9_tofloc2.png" style="object-fit:contain; width:50%">
+                        <img src="assets/img/lab9_tofloc2_flat.png" style="object-fit:contain; width:50%">
+                        <p>Location 3: (5,3)</p>
+                        <img src="assets/img/lab9_tofloc3.png" style="object-fit:contain; width:50%">
+                        <img src="assets/img/lab9_tofloc3_flat.png" style="object-fit:contain; width:50%">
+                        <p>Location 4: (0,3)</p>
+                        <img src="assets/img/lab9_tofloc4.png" style="object-fit:contain; width:50%">
+                        <img src="assets/img/lab9_tofloc4_flat.png" style="object-fit:contain; width:50%">
+
+                        <h2 class="section-heading">Merge and Plot The Readings</h2>
+                        <p>At this point, I computed the transformation matrices and converted the measurements from the ToF sensor (robot frame) to the map (global frame). This is the function that was used - inspired from ryan.</p>
+                        <script src="https://gist.github.com/umdiddle/d16a4077455c9ea700d57159dfce3c18.js"></script>
+                        <p>The transformation matrices were simple trigonometry; x = dist * cos(theta) and y = dist * sin(theta). </p>
+                        <p>The following map shows the data that was plotted with no walls added. </p>
+                        <img src="assets/img/lab9_map_nowalls.jpg" style="object-fit:contain; width:100%">
+                        <p>The following map shows the data that was plotted with walls added. While most of the walls were somewhat simple to place, the top wall was not very clear and thus a lot of assumptions were made to plot that wall. </p>
+                        <img src="assets/img/lab9_map_nowalls.jpg" style="object-fit:contain; width:100%">
+                        <p>Looking back on this lab, it would have been nice to have implemented finer PID control to improve the angular readings. We used P because, as we said above, the I was not working well due to the battery and the D term did not improve the performance either. However, because of this, the robot was not able to properly get the angle and ToF readings matched for postprocessing. To fix this, I tried to use a time scale (where the amount of time it had rotated corresponded to the angle), but this only helped a little, probably due to slight inconsistencies in the speeds of rotation for each sample.  </p>
+                        <p>However, despite this, the robot was able to map for some obstacles, and the polar plots were fairly accurate to real life. </p>
                     </div>
                 </div>
             </div>

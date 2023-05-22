@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>ECE 5160 Lab 10</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">ECE 5160 Home</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/gradient_background.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Lab 10: Localization (simulation)</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <h2 class="section-heading">Objective</h2>
+                        <p>In lab 10, I used a Bayes Filter to implement grid localization, but this time on the actual robot. We were unable to use the prediction step in this algorithm, since the robot's control is so noisy. However, this contributes to the overall goal of the lab, as it was meant to see the difference between simulation and real-world systems.</p>
+                        <p>I worked with Eshita Sangani on this lab.</p>
+                        
+                        <h2 class="section-heading">Simulation</h2>
+                        <p>These were the results from the last lab, which was in simulation. </p>
+                        <img src="assets/img/lab11_prevrun.png" style="object-fit:contain; width:100%">
+                        <p>As you can see, the belief, shown in blue, is not too different from the ground truth, shown in green. Thus, I was able to move on to this lab. </p>
+
+                        <h2 class="section-heading">Observation Loop</h2>
+                        <p>I started by going through the skeleton notebook that was provided and integrating this with the localization code. The first step of this was implementing the perform_observation_loop function in the class RealRobot. The purpose of this functionw was to have the robot do a 360 degree turn while collecting angular sensing data. The robot began in the same orientation everytime. </p>
+                        <p>To integrate the real robot's data with the simulator, I needed 18 points of data at each of the marked map points. To do this, I adapted my code from lab 9. This (theoretically) recorded 15 measurements every second for a total of 150 data points, and usually in increments of 40 degrees. However, due to the number of degrees it was able to take data at, the data was not accurate. Thus, instead of having the target be 40 deg/s, it was changed to be 15 deg/s.</p>
+                        <p>Additionally, the times at which the ToF data was sent over bluetooth was modified. Before, the ToF data was collected continuously and all of the data was sent at the end of the spin. After the modification, the robot would first ensure that the desired angle was met, and then execute the PID and send the command over via bluetooth. The code is below.</p>
+                        <script src="https://gist.github.com/umdiddle/ab3ce3190661339279f5bd50d06e332c.js"></script>
+
+                        <p>After all of this, I implemented the perform_observation_loop function to call this case, with the added notification handler as seen below.</p>
+                        <script src="https://gist.github.com/umdiddle/7e94823727ac5d73c43be9ed2973c4c3.js"></script>
+                        <p>As you can see, over_handler, the notification handler for receiving the data, parses out the time, ToF, and angular velocity readings. The function essentially just tranposes the data to match the format required.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Your Website 2022</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
