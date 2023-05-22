@@ -67,6 +67,26 @@
                         <p>After all of this, I implemented the perform_observation_loop function to call this case, with the added notification handler as seen below.</p>
                         <script src="https://gist.github.com/umdiddle/7e94823727ac5d73c43be9ed2973c4c3.js"></script>
                         <p>As you can see, over_handler, the notification handler for receiving the data, parses out the time, ToF, and angular velocity readings. The function essentially just tranposes the data to match the format required.</p>
+
+                        <h2 class="section-heading">Running the Localization</h2>
+                        <p>The following images show the results of running the localization. </p>
+                        <p>(5,-3)</p>
+                        <img src="assets/img/lab11_1.jpg" style="object-fit:contain; width:100%">
+                        <p>Belief: (1.52,-0.914,150.000), Truth: (1.52,-0.914,90)</p>
+                        <p>(5,3)</p>
+                        <img src="assets/img/lab11_2.png" style="object-fit:contain; width:100%">
+                        <p>Belief: (0.914, 0.305, -70.000), Truth: (1.52,0.914,90)</p>
+                        <p>(0,3): </p>
+                        <img src="assets/img/lab11_3.jpg" style="object-fit:contain; width:100%">
+                        <p>Belief: (0.000, 0.914, 90.000), Truth: (0.000, 0.914, 90.000)</p>
+                        <p>(-3,-2)</p>
+                        <img src="assets/img/lab11_4.jpg" style="object-fit:contain; width:100%">
+                        <p>Belief: (-0.914, -0.914, -90.000), Truth: (-0.914, -0.914, 90.000)</p>
+
+                        <p>Localization ran fairly well for these runs, with the exception of the second, in which the robot somehow localized to be inside of the obstacle. Due to the accuracy of the others, I'm inclined to believe thtat this was due to faulty readings of the distance data rather than the localization itself.</p>
+                        <p>One thing to note is that the process to get this data took much fine tuning. This included (as mentioned above) readings sometimes not processing, and difficulty with using data that was taken as the robot spun clockwise vs counterclockwise. </p>
+                        <p>As with before, areas with more walls made it more difficult for the robot to localize, as seen above. Also, the battery drainage was a significant issue and would cause the wheels to react in ways that were not expected. </p>
+                        <p>With the exception of the second trial, the robot seemed to localize accurately (except for orientation, again maybe due to the wall issue? or one of the other issues mentioned previously) and can probably be used for lab 12!</p>
                     </div>
                 </div>
             </div>
