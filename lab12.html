@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>ECE 5160 Lab 12</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">ECE 5160 Home</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/gradient_background.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Lab 12: Path Planning and Execution</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <h2 class="section-heading">Objective</h2>
+                        <p>In lab 12, the goal was to combine everything from all of the previous labs to have the robot drive to a set of waypoints. </p>
+                        <p>I worked with Eshita Sangani on this lab.</p>
+                        
+                        <h2 class="section-heading">Design Approach</h2>
+                        <p>The planned trajectory around the waypoints is shown below. </p>
+                        <img src="assets/img/lab12_traj.png" style="object-fit:contain; width:100%">
+                        <p>Ideally, I would do localization as the robot drove around the map, relocalizing each time it hit a waypoint. However, due to time constraints, I first pursued open loop control with PID control and decided to do localization if time allowed, </p>
+                        <p>To achieve this, I designed 3 Ardduino functions - FORWARD, TURN_POS_90, and TURN_NEG_90.</p>
+                        <p>The FORWARD function was essentially the PID controller from lab 6. However, this time the target disance was set as a user input to allow us to reuse the function. As before, the kP value was also set by the user. This allowed us to drive both forwards and backwards, depending on how far the car was from the target.</p>
+                        <script src="https://gist.github.com/umdiddle/3e66c8351437c104f9a7c1d3408c8540.js"></script>
+
+                        <p>The TURN_POS_90 function turned the robot clockwise a specified angle. Note that the function name is misleading; it was originally meant for the robot to only turn 90 degrees but I was able to change the amount turned to a user specified value. </p>
+                        <p>This code was adapted from lab 9. The car has the same target angular velocity from the gyroscope, and I used the time to determine when the robot had turned 90 degrees. With more tuning, I probably should have used the angular position (by integrating it over time) to get more accuracy. </p>
+                        <script src="https://gist.github.com/umdiddle/161edeff6f36dd8d5326e4a547cef3e6.js"></script>
+
+                        <p>The TURN_NEG_90 function was exactly the same as the previous function but it turned in the other direction. The timing was adjusted since the wheels did not rotate the same in each direction. The code is shown below. </p>
+                        <script src="https://gist.github.com/umdiddle/a997e7ec475590e31709013dcb6d0ae7.js"></script>
+
+                        <h2 class="section-heading">Plan in Action</h2>
+                        <p>In practice, this required a lot of tuning to get both all of the kP values correct, as well as get the exact target distances. However, the above scheme did allow for this to be smoother, as everything could be edited within the jupyter side rather than having to modify and reupload the Arduino code each time. The final values as well as the jupyter code is shown below. </p>
+                        <script src="https://gist.github.com/umdiddle/013a828db195a8be04d62ccb5e1aa467.js"></script>
+
+                        <p>As mentioned above, tuning the jupyter code required the most work. This was because both the kP and target values needed to be tuned to drive forward, so it required much more work than the typical PID tuning process. The Arduino code only required some manipulation of the setup to ensure there was no slowdown or noise from the sensors, of which there ended up being none. To tune both the kP and targets, manually calculated the values for each waypoint, referencing the first image at the very top of this page. However, after I had tuned those values perfectly, I struggled with the integration. Since I only used PID control, the ending position of one waypoint was not necessarily exactly on that specific waypoint or exactly in the desired angle, which made tuning these values, specifically the distances, extremely difficult. Then I decided to do the pathway in chunks, hoping that would allow for some easier integration. That ended up being the best strategy. </p> 
+                        <p>However, on the last day in lab, both the Artemis and the motor batteries sarted behaving in unexpected ways, the ToF sensor stopped working, and the number of people in the lab was so high that testing any changes took a long time due to having to wait.</p>
+
+                        <p>All of the videos can be found in the following playlist <a href="https://www.youtube.com/playlist?list=PLNm4KYEY7tgytM6pxqACQvYPvitvOivTz">here.</a></p>
+
+                        <p>While there were not any full runs, the robot was able to drive around and hit waypoints, especially as seen in the middle section of the route, and there was a long run that showed that the robot was able to reach most of the waypoints.</p>
+                        <p>Unfortunately, I was not able to add in localization due to time constraints as I had planned to before. If I had, and also integrated orientation control, then perhaps the robot would have been more accurate at reaching all of the waypoints.</p>
+
+                        <h2 class="section-heading">Reflections on the Class</h2>
+                        <p>This class was so challenging and difficult, and I really wish I had taken it in a semester where I had a lighter workload. However, I am so thankful to all of the TAs (specifically Lemon and Cameron, my lab TAs!!) for helping out with all of my stupid questions and weird hardware issues. Also, I would like to thank Professor Petersen for teaching this class this semester. You guys have been incredibly patient and helpful this semester! </p>
+                        
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Your Website 2022</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
